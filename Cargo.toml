@@ -1,0 +1,13 @@
+[package]
+name = "proteinpills"
+version = "0.1.0"
+authors = ["Doug Woos <doug.woos@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+syscall = "0.2.1"
+lazy_static = "1.3.0"
+
+[lib]
+name="proteinpills"
+crate-type = ["staticlib"]
