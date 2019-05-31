@@ -67,7 +67,6 @@ Vagrant.configure("2") do |config|
      apt-get update
      apt-get install -y git vim curl
      echo 'curl https://sh.rustup.rs -sSf | sh -s -- -y;' | su vagrant
-     cd /vagrant
-     rustup default nightly
+     echo 'cd /vagrant; /home/vagrant/.cargo/bin/rustup default nightly' | su vagrant
   SHELL
 end

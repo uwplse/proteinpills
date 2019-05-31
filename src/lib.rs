@@ -7,11 +7,13 @@ use std::sync::Mutex;
 use std::thread;
 
 struct State {
-    is_traced: bool
+    is_traced: bool,
 }
 
 lazy_static! {
-    static ref STATE: Mutex<State> = Mutex::new(State {is_traced: detect_tracing()});
+    static ref STATE: Mutex<State> = Mutex::new(State {
+        is_traced: detect_tracing()
+    });
 }
 
 const MAGIC_NUMBER: usize = 42;
@@ -19,11 +21,11 @@ const DETECT_TRACE: usize = 5000;
 
 const ANNOTATE_TIMEOUT: usize = 5001;
 const ANNOTATE_MESSAGE: usize = 5002;
-const ANNOTATE_STATE : usize = 5003;
+const ANNOTATE_STATE: usize = 5003;
 
 const INT_FIELD: usize = 5010;
 const STR_FIELD: usize = 5011;
-
+const PROTOBUF_FIELD: usize = 5012;
 
 fn detect_tracing() -> bool {
     unsafe {
@@ -63,7 +65,6 @@ pub extern "C" fn annotate_state() {
     }
 }
 
-
 #[no_mangle]
 pub extern "C" fn int_field(path: *mut c_char, value: i32) {
     if is_tracing() {
@@ -83,14 +84,21 @@ pub extern "C" fn str_field(path: *mut c_char, value: *mut c_char) {
 }
 
 #[no_mangle]
+pub extern "C" fn protobuf_field(path: *mut c_char, value: *mut c_char, value_len: usize) {
+    if is_tracing() {
+        unsafe {
+            syscall::syscall3(PROTOBUF_FIELD, path as usize, value as usize, value_len);
+        }
+    }
+}
+
+#[no_mangle]
 pub extern "C" fn register_state_function(f: Option<extern "C" fn()>) {
     if is_tracing() {
         if let Some(state_fn) = f {
-            thread::spawn(move || {
-                loop {
-                    annotate_state();
-                    state_fn();
-                }
+            thread::spawn(move || loop {
+                annotate_state();
+                state_fn();
             });
         }
     }
